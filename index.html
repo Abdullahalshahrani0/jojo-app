@@ -560,20 +560,22 @@ function urlBase64ToUint8Array(b64) {
   return Uint8Array.from([...raw].map(c => c.charCodeAt(0)));
 }
 
+const SERVER = 'https://jojo-app-pj79.onrender.com';
+
 async function subscribeToPush() {
   if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
   try {
     const reg = await navigator.serviceWorker.ready;
     let sub   = await reg.pushManager.getSubscription();
     if (!sub) {
-      const r = await fetch('/vapid-public-key');
+      const r = await fetch(`${SERVER}/vapid-public-key`);
       const { publicKey } = await r.json();
       sub = await reg.pushManager.subscribe({
         userVisibleOnly: true,
         applicationServerKey: urlBase64ToUint8Array(publicKey),
       });
     }
-    await fetch('/subscribe', {
+    await fetch(`${SERVER}/subscribe`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(sub),
@@ -583,7 +585,7 @@ async function subscribeToPush() {
 
 async function syncToServer() {
   try {
-    await fetch('/schedule', {
+    await fetch(`${SERVER}/schedule`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
