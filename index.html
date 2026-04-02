@@ -1,0 +1,1040 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JOJO 🍓</title>
+<meta name="theme-color" content="#E8424A">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="JOJO">
+<link rel="manifest" href="/manifest.json">
+<link rel="apple-touch-icon" href="/icon.svg">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --pink: #FFB6C1;
+  --pink-dark: #ff8fa3;
+  --red: #E8424A;
+  --cream: #FFF5F5;
+  --cream-dark: #FFE8EC;
+  --gold: #F5C842;
+  --gold-light: #FFF0B3;
+  --text: #3D1A1A;
+  --text-light: #9B6B6B;
+  --white: #FFFFFF;
+  --shadow: 0 8px 32px rgba(232,66,74,0.10);
+  --shadow-card: 0 4px 24px rgba(232,66,74,0.13);
+  --radius: 24px;
+  --accent: var(--red);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body {
+  font-family: 'Tajawal', sans-serif;
+  background: var(--cream);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  top: -80px; left: -80px;
+  width: 260px; height: 260px;
+  background: radial-gradient(circle, #FFB6C133 0%, transparent 70%);
+  pointer-events: none; z-index: 0;
+}
+body::after {
+  content: '';
+  position: fixed;
+  bottom: -60px; right: -60px;
+  width: 220px; height: 220px;
+  background: radial-gradient(circle, #E8424A22 0%, transparent 70%);
+  pointer-events: none; z-index: 0;
+}
+
+.app-header {
+  background: linear-gradient(135deg, var(--red) 0%, #c0323a 100%);
+  color: #fff;
+  padding: 18px 20px 14px;
+  text-align: center;
+  position: sticky; top: 0; z-index: 100;
+  box-shadow: 0 4px 20px rgba(232,66,74,0.25);
+}
+.app-logo {
+  font-size: 28px;
+  font-weight: 900;
+  letter-spacing: 1px;
+  text-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+.app-tagline {
+  font-size: 12px;
+  opacity: 0.85;
+  margin-top: 2px;
+  font-weight: 400;
+}
+
+.app-nav {
+  display: flex;
+  background: var(--white);
+  border-bottom: 2px solid var(--cream-dark);
+  position: sticky; top: 70px; z-index: 99;
+  box-shadow: 0 2px 12px rgba(232,66,74,0.07);
+}
+.nav-btn {
+  flex: 1;
+  padding: 13px 6px 10px;
+  border: none; background: none;
+  font-family: 'Tajawal', sans-serif;
+  font-size: 13px; font-weight: 600;
+  color: var(--text-light);
+  cursor: pointer;
+  display: flex; flex-direction: column; align-items: center; gap: 3px;
+  transition: color .2s, background .2s;
+  border-bottom: 3px solid transparent;
+}
+.nav-btn .nav-icon { font-size: 18px; }
+.nav-btn.active {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+  background: linear-gradient(to top, #FFE8EC55, transparent);
+}
+
+.page { display: none; padding: 20px 16px 100px; position: relative; z-index: 1; }
+.page.active { display: block; animation: fadeUp .35s ease; }
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.section-title {
+  font-size: 20px; font-weight: 800;
+  color: var(--text);
+  margin-bottom: 16px;
+  display: flex; align-items: center; gap: 8px;
+}
+.section-title::after {
+  content: '';
+  flex: 1;
+  height: 2px;
+  background: linear-gradient(to left, transparent, var(--pink));
+  border-radius: 2px;
+}
+
+.card {
+  background: var(--white);
+  border-radius: var(--radius);
+  padding: 18px 16px;
+  margin-bottom: 14px;
+  box-shadow: var(--shadow-card);
+  border: 1.5px solid var(--cream-dark);
+  animation: slideIn .3s ease;
+  position: relative;
+  overflow: hidden;
+}
+.card::before {
+  content: '';
+  position: absolute;
+  top: 0; right: 0;
+  width: 4px; height: 100%;
+  background: linear-gradient(to bottom, var(--red), var(--pink));
+  border-radius: 0 var(--radius) var(--radius) 0;
+}
+.card.paused::before {
+  background: linear-gradient(to bottom, #ccc, #eee);
+}
+@keyframes slideIn {
+  from { opacity: 0; transform: translateX(20px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+.card-name {
+  font-size: 17px; font-weight: 700;
+  color: var(--text);
+}
+.card-sub {
+  font-size: 12px;
+  color: var(--text-light);
+  margin-top: 5px;
+  margin-bottom: 4px;
+  display: flex; flex-wrap: wrap; gap: 5px; align-items: center;
+}
+
+.btn {
+  border: none; cursor: pointer;
+  font-family: 'Tajawal', sans-serif;
+  font-weight: 700; border-radius: 16px;
+  transition: transform .15s, box-shadow .15s;
+  display: inline-flex; align-items: center; gap: 6px;
+}
+.btn:active { transform: scale(0.95); }
+.btn-primary {
+  background: linear-gradient(135deg, var(--red), #c0323a);
+  color: #fff;
+  padding: 10px 18px;
+  font-size: 14px;
+  box-shadow: 0 4px 14px rgba(232,66,74,0.35);
+}
+.btn-primary:hover { box-shadow: 0 6px 20px rgba(232,66,74,0.45); transform: translateY(-1px); }
+.btn-sm {
+  padding: 7px 14px;
+  font-size: 13px;
+  border-radius: 12px;
+}
+.btn-outline {
+  background: none;
+  border: 1.5px solid var(--pink-dark);
+  color: var(--red);
+  padding: 8px 14px;
+  font-size: 13px;
+}
+.btn-outline:hover { background: var(--cream-dark); }
+.btn-danger {
+  background: none;
+  border: 1.5px solid #ffb3b3;
+  color: #c0323a;
+  padding: 7px 12px;
+  font-size: 12px;
+  border-radius: 12px;
+}
+.btn-danger:hover { background: #fff0f0; }
+.btn-ghost {
+  background: var(--cream-dark);
+  color: var(--text-light);
+  padding: 7px 14px; font-size: 13px;
+  border-radius: 12px;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--text-light);
+}
+.empty-icon { font-size: 52px; margin-bottom: 12px; display: block; animation: bob 2s ease-in-out infinite; }
+@keyframes bob {
+  0%,100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+.empty-state h3 { font-size: 17px; font-weight: 700; color: var(--text); margin-bottom: 8px; }
+.empty-state p { font-size: 14px; line-height: 1.6; }
+
+.form-card {
+  background: var(--white);
+  border-radius: var(--radius);
+  padding: 20px 16px;
+  margin-bottom: 20px;
+  box-shadow: var(--shadow);
+  border: 1.5px solid var(--cream-dark);
+}
+.form-title { font-size: 16px; font-weight: 700; margin-bottom: 14px; color: var(--red); }
+.form-group { margin-bottom: 12px; }
+.form-label { font-size: 13px; font-weight: 600; color: var(--text-light); margin-bottom: 5px; display: block; }
+.form-input, .form-select {
+  width: 100%;
+  padding: 11px 14px;
+  border: 1.5px solid var(--cream-dark);
+  border-radius: 14px;
+  font-family: 'Tajawal', sans-serif;
+  font-size: 14px;
+  background: var(--cream);
+  color: var(--text);
+  transition: border-color .2s;
+}
+.form-input:focus, .form-select:focus {
+  outline: none;
+  border-color: var(--pink-dark);
+  background: var(--white);
+}
+
+.days-picker { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
+.day-btn {
+  padding: 7px 10px;
+  border-radius: 10px;
+  border: 1.5px solid var(--cream-dark);
+  background: var(--cream);
+  font-family: 'Tajawal', sans-serif;
+  font-size: 12px; font-weight: 600;
+  color: var(--text-light);
+  cursor: pointer; transition: all .2s;
+}
+.day-btn.selected {
+  background: var(--red);
+  color: #fff;
+  border-color: var(--red);
+  box-shadow: 0 3px 10px rgba(232,66,74,0.3);
+}
+
+.toggle-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 16px;
+  background: var(--white);
+  border-radius: 16px;
+  margin-bottom: 10px;
+  border: 1.5px solid var(--cream-dark);
+}
+.toggle-label { font-size: 14px; font-weight: 600; }
+.toggle-sub { font-size: 12px; color: var(--text-light); margin-top: 2px; }
+.toggle {
+  position: relative; width: 46px; height: 26px;
+  flex-shrink: 0;
+}
+.toggle input { opacity: 0; width: 0; height: 0; }
+.toggle-slider {
+  position: absolute; inset: 0;
+  background: #ddd; border-radius: 26px;
+  cursor: pointer; transition: .3s;
+}
+.toggle-slider:before {
+  content: ''; position: absolute;
+  height: 20px; width: 20px;
+  right: 3px; top: 3px;
+  background: #fff; border-radius: 50%;
+  transition: .3s;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+}
+.toggle input:checked + .toggle-slider { background: var(--red); }
+.toggle input:checked + .toggle-slider:before { transform: translateX(-20px); }
+
+.settings-section { margin-bottom: 24px; }
+.settings-title { font-size: 13px; font-weight: 700; color: var(--text-light); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px; }
+
+.notif-banner {
+  background: linear-gradient(135deg, #FFF0B3, #FFE8EC);
+  border: 1.5px solid #F5C84266;
+  border-radius: var(--radius);
+  padding: 16px;
+  margin-bottom: 18px;
+  display: flex; align-items: center; gap: 12px;
+}
+.notif-banner-icon { font-size: 28px; flex-shrink: 0; }
+.notif-banner-text { flex: 1; font-size: 13px; line-height: 1.5; color: #7a4a00; font-weight: 500; }
+.notif-banner-text strong { display: block; font-size: 14px; margin-bottom: 3px; }
+
+.color-options { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 8px; }
+.color-dot {
+  width: 34px; height: 34px; border-radius: 50%;
+  cursor: pointer; border: 3px solid transparent;
+  transition: transform .2s, border-color .2s;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+.color-dot.active { border-color: var(--text); transform: scale(1.15); }
+.color-dot:hover { transform: scale(1.1); }
+
+.schedule-tag {
+  display: inline-flex; align-items: center;
+  background: var(--cream-dark); border-radius: 10px;
+  padding: 3px 9px; font-size: 11px; color: var(--text-light);
+  font-weight: 600;
+}
+
+.card-toggle-row {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-top: 12px; padding-top: 12px;
+  border-top: 1px dashed var(--cream-dark);
+}
+.card-toggle-label { font-size: 12px; color: var(--text-light); }
+
+.current-pick-badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  background: linear-gradient(135deg, var(--red), #c0323a);
+  color: #fff;
+  border-radius: 10px;
+  padding: 3px 9px; font-size: 11px; font-weight: 700;
+}
+
+.toast {
+  position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%) translateY(20px);
+  background: rgba(61,26,26,0.92);
+  color: #fff; padding: 10px 22px;
+  border-radius: 20px; font-size: 14px; font-weight: 600;
+  opacity: 0; pointer-events: none;
+  transition: opacity .3s, transform .3s;
+  z-index: 999; white-space: nowrap;
+  backdrop-filter: blur(8px);
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+.divider { height: 1px; background: var(--cream-dark); margin: 16px 0; border-radius: 1px; }
+
+@media (min-width: 480px) {
+  .page { max-width: 480px; margin: 0 auto; }
+  .app-nav { max-width: 480px; margin: 0 auto; }
+}
+
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; appearance: none; margin: 0; }
+input[type=number] { -moz-appearance: textfield; appearance: textfield; }
+</style>
+</head>
+<body>
+
+<!-- iOS install banner — shown only on iOS Safari outside standalone mode -->
+<div id="ios-banner" style="display:none;background:linear-gradient(135deg,#FFF0B3,#FFE8EC);border-bottom:1.5px solid #F5C84266;padding:12px 16px;gap:10px;align-items:center;font-family:'Tajawal',sans-serif;font-size:13px;color:#7a4a00;font-weight:500;position:sticky;top:0;z-index:101">
+  <span style="font-size:22px;flex-shrink:0">📲</span>
+  <span style="flex:1;line-height:1.5"><strong style="display:block;font-size:14px;margin-bottom:2px">Install JOJO for notifications</strong>Tap <strong>Share</strong> → <strong>Add to Home Screen</strong></span>
+  <button onclick="document.getElementById('ios-banner').style.display='none'" style="border:none;background:none;font-size:18px;cursor:pointer;color:#7a4a00;padding:4px">✕</button>
+</div>
+
+<header class="app-header">
+  <div class="app-logo">Hi Jomana 🍓</div>
+  <div class="app-tagline">Your reminder to stay close to the people you love</div>
+</header>
+
+<nav class="app-nav">
+  <button class="nav-btn active" data-page="friends" onclick="showPage('friends')">
+    <span class="nav-icon">👯‍♀️</span>
+    <span>Friends</span>
+  </button>
+  <button class="nav-btn" data-page="family" onclick="showPage('family')">
+    <span class="nav-icon">🏡</span>
+    <span>Family</span>
+  </button>
+  <button class="nav-btn" data-page="settings" onclick="showPage('settings')">
+    <span class="nav-icon">✨</span>
+    <span>Settings</span>
+  </button>
+</nav>
+
+<!-- ── FRIENDS PAGE ── -->
+<div id="page-friends" class="page active">
+
+  <div id="notif-banner" class="notif-banner" style="display:none">
+    <span class="notif-banner-icon">🔔</span>
+    <div class="notif-banner-text">
+      <strong>Enable Notifications</strong>
+      JOJO needs permission to remind Jomana about the people she loves 🍓
+    </div>
+    <button class="btn btn-primary btn-sm" onclick="requestNotifPermission()">Allow</button>
+  </div>
+
+  <!-- Add friend -->
+  <div class="form-card">
+    <div class="form-title">🍓 Add a friend</div>
+    <div class="form-group">
+      <label class="form-label">Name</label>
+      <input type="text" id="friend-name" class="form-input">
+    </div>
+    <button class="btn btn-primary" onclick="addFriend()">➕ Add</button>
+  </div>
+
+  <!-- Friends reminder schedule (shared) -->
+  <div class="form-card" id="friends-schedule-card" style="display:none">
+    <div class="form-title">📅 Friends reminder schedule</div>
+    <div class="form-group">
+      <label class="form-label">Day of the week</label>
+      <select id="friend-day" class="form-select" onchange="saveFriendSchedule()">
+        <option value="0">Sunday</option>
+        <option value="1">Monday</option>
+        <option value="2">Tuesday</option>
+        <option value="3">Wednesday</option>
+        <option value="4">Thursday</option>
+        <option value="5" selected>Friday</option>
+        <option value="6">Saturday</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Time</label>
+      <input type="time" id="friend-time" class="form-input" value="09:00" oninput="saveFriendSchedule()">
+    </div>
+    <div style="font-size:12px;color:var(--text-light);margin-top:4px">
+      Every week JOJO picks one friend and sends a reminder at this time.
+    </div>
+  </div>
+
+  <div class="section-title">🫐 All Friends</div>
+  <div id="friends-list"></div>
+</div>
+
+<!-- ── FAMILY PAGE ── -->
+<div id="page-family" class="page">
+
+  <!-- Add family member -->
+  <div class="form-card">
+    <div class="form-title">🏡 Add a family member</div>
+    <div class="form-group">
+      <label class="form-label">Name</label>
+      <input type="text" id="family-name" class="form-input">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Reminder days</label>
+      <div class="days-picker" id="family-days-picker">
+        <button class="day-btn" data-day="1">Mon</button>
+        <button class="day-btn" data-day="2">Tue</button>
+        <button class="day-btn" data-day="3">Wed</button>
+        <button class="day-btn" data-day="4">Thu</button>
+        <button class="day-btn" data-day="5">Fri</button>
+        <button class="day-btn" data-day="6">Sat</button>
+        <button class="day-btn" data-day="0">Sun</button>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Time</label>
+      <input type="time" id="family-time" class="form-input" value="09:00">
+    </div>
+    <button class="btn btn-primary" onclick="addFamilyMember()">➕ Add</button>
+  </div>
+
+  <div class="section-title">💗 Family Members</div>
+  <div id="family-list"></div>
+</div>
+
+<!-- ── SETTINGS PAGE ── -->
+<div id="page-settings" class="page">
+
+  <div class="section-title" style="margin-bottom:20px">✨ Jomana's Settings</div>
+
+  <div class="settings-section">
+    <div class="settings-title">🔔 Notifications</div>
+
+    <!-- Master toggle -->
+    <div class="toggle-row" style="border-color:var(--pink-dark);background:linear-gradient(135deg,#FFF5F5,#FFE8EC)">
+      <div>
+        <div class="toggle-label">Master switch</div>
+        <div class="toggle-sub">Turn all reminders on or off</div>
+      </div>
+      <label class="toggle">
+        <input type="checkbox" id="toggle-master" onchange="saveSetting('masterOn', this.checked)">
+        <span class="toggle-slider"></span>
+      </label>
+    </div>
+
+    <div class="toggle-row">
+      <div>
+        <div class="toggle-label">Quiet hours</div>
+        <div class="toggle-sub">No notifications from 11pm to 8am</div>
+      </div>
+      <label class="toggle">
+        <input type="checkbox" id="toggle-quiet" onchange="saveSetting('quietHours', this.checked)">
+        <span class="toggle-slider"></span>
+      </label>
+    </div>
+    <div class="form-group" style="margin-top:10px">
+      <label class="form-label">Quiet hours start</label>
+      <input type="time" id="quiet-start" class="form-input" value="23:00" oninput="saveSetting('quietStart', this.value)">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Quiet hours end</label>
+      <input type="time" id="quiet-end" class="form-input" value="08:00" oninput="saveSetting('quietEnd', this.value)">
+    </div>
+  </div>
+
+  <div class="settings-section">
+    <div class="settings-title">🎨 Appearance</div>
+    <div class="form-group">
+      <label class="form-label">App color</label>
+      <div class="color-options">
+        <div class="color-dot active" style="background:#E8424A" data-color="#E8424A" onclick="changeAccent('#E8424A',this)"></div>
+        <div class="color-dot" style="background:#E86CA0" data-color="#E86CA0" onclick="changeAccent('#E86CA0',this)"></div>
+        <div class="color-dot" style="background:#9B59B6" data-color="#9B59B6" onclick="changeAccent('#9B59B6',this)"></div>
+        <div class="color-dot" style="background:#3498DB" data-color="#3498DB" onclick="changeAccent('#3498DB',this)"></div>
+        <div class="color-dot" style="background:#2ECC71" data-color="#2ECC71" onclick="changeAccent('#2ECC71',this)"></div>
+        <div class="color-dot" style="background:#E67E22" data-color="#E67E22" onclick="changeAccent('#E67E22',this)"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="settings-section">
+    <div class="settings-title">⚙️ Data</div>
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <button class="btn btn-danger" onclick="clearAllData()">🗑️ Clear all data</button>
+    </div>
+  </div>
+
+  <div style="text-align:center;margin-top:30px;color:var(--text-light);font-size:12px">
+    <span>🍓</span> JOJO — Jomana's data is stored on this device only<br>
+    <span style="font-size:11px;opacity:0.7">No servers · No numbers · No accounts</span>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ─── SERVICE WORKER + PUSH ────────────────────────────────────────────────────
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/sw.js').catch(e => console.warn('SW:', e));
+}
+
+function urlBase64ToUint8Array(b64) {
+  const pad = '='.repeat((4 - b64.length % 4) % 4);
+  const raw = atob((b64 + pad).replace(/-/g, '+').replace(/_/g, '/'));
+  return Uint8Array.from([...raw].map(c => c.charCodeAt(0)));
+}
+
+async function subscribeToPush() {
+  if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
+  try {
+    const reg = await navigator.serviceWorker.ready;
+    let sub   = await reg.pushManager.getSubscription();
+    if (!sub) {
+      const r = await fetch('/vapid-public-key');
+      const { publicKey } = await r.json();
+      sub = await reg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(publicKey),
+      });
+    }
+    await fetch('/subscribe', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(sub),
+    });
+  } catch (e) { console.warn('Push subscribe:', e); }
+}
+
+async function syncToServer() {
+  try {
+    await fetch('/schedule', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        settings:    getSettings(),
+        friends:     getFriends(),
+        family:      getFamily(),
+        friendQueue: load(K.friendQueue) || [],
+        currentPick: load(K.currentPick),
+        sentToday:   load(K.sentToday) || { familyIds: {}, friendWeek: null },
+      }),
+    });
+  } catch { /* offline — localStorage keeps working */ }
+}
+
+// ─── iOS INSTALL BANNER ───────────────────────────────────────────────────────
+(function showIOSBanner() {
+  const isIOS        = /iphone|ipad|ipod/i.test(navigator.userAgent);
+  const isStandalone = window.navigator.standalone === true;
+  if (isIOS && !isStandalone) {
+    document.getElementById('ios-banner').style.display = 'flex';
+  }
+})();
+
+// ─── STORAGE KEYS ────────────────────────────────────────────────────────────
+const K = {
+  friends:      'jojo_friends',
+  family:       'jojo_family',
+  settings:     'jojo_settings',
+  friendQueue:  'jojo_friend_queue',
+  currentPick:  'jojo_current_pick',
+  sentToday:    'jojo_sent_today',
+};
+
+// ─── STORAGE HELPERS ─────────────────────────────────────────────────────────
+function load(key)       { try { return JSON.parse(localStorage.getItem(key)); } catch { return null; } }
+function store(key, val) { localStorage.setItem(key, JSON.stringify(val)); }
+
+function getFriends()  { return load(K.friends)  || []; }
+function getFamily()   { return load(K.family)   || []; }
+function getSettings() {
+  return Object.assign({
+    masterOn: false, quietHours: true,
+    quietStart: '23:00', quietEnd: '08:00',
+    accent: '#E8424A',
+    friendDay: 5, friendTime: '09:00',
+  }, load(K.settings) || {});
+}
+
+// ─── WEEK HELPER ─────────────────────────────────────────────────────────────
+function isoWeek(date) {
+  const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+  d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7));
+  const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+  return d.getUTCFullYear() * 100 + Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+}
+function todayStr() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+
+// ─── NAVIGATION ──────────────────────────────────────────────────────────────
+function showPage(page) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('page-' + page).classList.add('active');
+  document.querySelector(`[data-page="${page}"]`).classList.add('active');
+  if (page === 'friends')  renderFriends();
+  if (page === 'family')   renderFamily();
+  if (page === 'settings') renderSettings();
+}
+
+// ─── TOAST ───────────────────────────────────────────────────────────────────
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 2800);
+}
+
+// ─── NOTIFICATIONS ───────────────────────────────────────────────────────────
+function checkNotifBanner() {
+  const banner = document.getElementById('notif-banner');
+  if (!banner) return;
+  banner.style.display = (typeof Notification !== 'undefined' && Notification.permission === 'default') ? 'flex' : 'none';
+}
+
+async function requestNotifPermission() {
+  if (typeof Notification === 'undefined') { toast('Notifications not supported'); return; }
+  const p = await Notification.requestPermission();
+  if (p === 'granted') {
+    const s = getSettings(); s.masterOn = true; store(K.settings, s);
+    document.getElementById('notif-banner').style.display = 'none';
+    toast('✅ Notifications enabled!');
+    renderSettings();
+    await subscribeToPush();
+    await syncToServer();
+    send('JOJO 🍓', "Hi Jomana! I'll remind you about the people you love 💕");
+  } else {
+    toast('You can enable notifications later in Settings');
+  }
+}
+
+function isQuietNow() {
+  const s = getSettings();
+  if (!s.quietHours) return false;
+  const now = new Date();
+  const cur = now.getHours() * 60 + now.getMinutes();
+  const [sh, sm] = s.quietStart.split(':').map(Number);
+  const [eh, em] = s.quietEnd.split(':').map(Number);
+  const start = sh * 60 + sm, end = eh * 60 + em;
+  return start > end ? (cur >= start || cur < end) : (cur >= start && cur < end);
+}
+
+function send(title, body) {
+  if (typeof Notification === 'undefined' || Notification.permission !== 'granted') return;
+  try {
+    const n = new Notification(title, {
+      body,
+      icon: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="90">🍓</text></svg>',
+      tag: title + body,
+    });
+    n.onclick = () => { window.focus(); n.close(); };
+  } catch(e) {}
+}
+
+// ─── FRIENDS ROTATION ────────────────────────────────────────────────────────
+// Queue: array of friend IDs not yet picked this rotation.
+// Each week on the scheduled day+time, pop one from the queue and notify.
+// When queue empties, reshuffle all active friends into a new queue.
+
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function getCurrentPick() {
+  // Returns the friend ID picked for the current ISO week, or null.
+  // Advances the pick if a new week has started.
+  const now = new Date();
+  const week = isoWeek(now);
+  let pick = load(K.currentPick); // {id, isoWeek}
+
+  if (pick && pick.isoWeek === week) return pick.id;
+
+  // New week — advance to next in queue
+  const friends = getFriends().filter(f => f.active !== false);
+  if (friends.length === 0) return null;
+
+  let queue = load(K.friendQueue) || [];
+  // Remove IDs for friends that no longer exist or are inactive
+  queue = queue.filter(id => friends.some(f => f.id === id));
+
+  if (queue.length === 0) {
+    queue = shuffle(friends.map(f => f.id));
+  }
+
+  const nextId = queue.shift();
+  store(K.friendQueue, queue);
+  store(K.currentPick, { id: nextId, isoWeek: week });
+  return nextId;
+}
+
+function getPickName() {
+  const id = getCurrentPick();
+  if (!id) return null;
+  const f = getFriends().find(f => f.id === id);
+  return f ? f.name : null;
+}
+
+// ─── SCHEDULER (runs every minute) ───────────────────────────────────────────
+function checkSchedule() {
+  const s = getSettings();
+  if (!s.masterOn) return;
+  if (typeof Notification === 'undefined' || Notification.permission !== 'granted') return;
+  if (isQuietNow()) return;
+
+  const now = new Date();
+  const dayOfWeek = now.getDay();
+  const hhmm = String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0');
+  const today = todayStr();
+  const week  = isoWeek(now);
+
+  let sent = load(K.sentToday) || { familyIds: {}, friendWeek: null };
+
+  // ── Friends: one notification per week ──
+  if (dayOfWeek === Number(s.friendDay) && hhmm === s.friendTime && sent.friendWeek !== week) {
+    const name = getPickName();
+    if (name) {
+      send('JOJO 🍓', `Hey Jomana! Reach out to ${name} this week 🍓`);
+      sent.friendWeek = week;
+      store(K.sentToday, sent);
+    }
+  }
+
+  // ── Family: per-member schedule ──
+  const family = getFamily();
+  family.forEach(m => {
+    if (m.active === false) return;
+    if (!m.days.includes(dayOfWeek)) return;
+    if (m.time !== hhmm) return;
+    const lastSent = sent.familyIds[m.id];
+    if (lastSent === today) return; // already sent today
+    send('JOJO 🍓', `Hey Jomana! Time to call ${m.name} today 🍓`);
+    sent.familyIds[m.id] = today;
+    store(K.sentToday, sent);
+  });
+}
+
+// ─── FRIENDS CRUD ─────────────────────────────────────────────────────────────
+function addFriend() {
+  const name = document.getElementById('friend-name').value.trim();
+  if (!name) { toast('Enter a name 🍓'); return; }
+  const friends = getFriends();
+  friends.push({ id: Date.now(), name, active: true });
+  store(K.friends, friends);
+  document.getElementById('friend-name').value = '';
+  store(K.friendQueue, []);
+  renderFriends();
+  syncToServer();
+  toast('Added 🍓 ' + name);
+}
+
+function deleteFriend(id) {
+  store(K.friends, getFriends().filter(f => f.id !== id));
+  store(K.friendQueue, (load(K.friendQueue) || []).filter(x => x !== id));
+  const pick = load(K.currentPick);
+  if (pick && pick.id === id) store(K.currentPick, null);
+  renderFriends();
+  syncToServer();
+  toast('Removed');
+}
+
+function toggleFriend(id, val) {
+  const friends = getFriends();
+  const f = friends.find(x => x.id === id);
+  if (f) { f.active = val; store(K.friends, friends); }
+  store(K.friendQueue, []);
+  syncToServer();
+}
+
+function saveFriendSchedule() {
+  const s = getSettings();
+  s.friendDay  = Number(document.getElementById('friend-day').value);
+  s.friendTime = document.getElementById('friend-time').value;
+  store(K.settings, s);
+  syncToServer();
+}
+
+function renderFriends() {
+  const friends = getFriends();
+  const s = getSettings();
+
+  // Show/hide schedule card
+  document.getElementById('friends-schedule-card').style.display = friends.length > 0 ? 'block' : 'none';
+
+  // Sync schedule inputs
+  document.getElementById('friend-day').value  = s.friendDay;
+  document.getElementById('friend-time').value = s.friendTime;
+
+  const list = document.getElementById('friends-list');
+  if (friends.length === 0) {
+    list.innerHTML = `
+      <div class="empty-state">
+        <span class="empty-icon">🍓</span>
+        <h3>Jomana, add your first friend!</h3>
+        <p>JOJO will rotate through your friends each week and remind you to reach out 💕</p>
+      </div>`;
+    checkNotifBanner();
+    return;
+  }
+
+  const currentPickId = getCurrentPick();
+  const DAY_NAMES = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+
+  list.innerHTML = friends.map(f => `
+    <div class="card${f.active === false ? ' paused' : ''}">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px">
+        <div>
+          <div class="card-name">${esc(f.name)}</div>
+          <div class="card-sub">
+            ${f.id === currentPickId ? '<span class="current-pick-badge">⭐ This week</span>' : ''}
+          </div>
+        </div>
+        <button class="btn btn-danger" style="margin-top:2px;flex-shrink:0" onclick="deleteFriend(${f.id})">Remove</button>
+      </div>
+      <div class="card-toggle-row">
+        <span class="card-toggle-label">${f.active === false ? 'Paused' : 'Active'}</span>
+        <label class="toggle">
+          <input type="checkbox" ${f.active !== false ? 'checked' : ''} onchange="toggleFriend(${f.id}, this.checked)">
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+    </div>
+  `).join('');
+
+  checkNotifBanner();
+}
+
+// ─── FAMILY CRUD ──────────────────────────────────────────────────────────────
+let selectedFamilyDays = [];
+
+document.getElementById('family-days-picker').addEventListener('click', function(e) {
+  const btn = e.target.closest('.day-btn');
+  if (!btn) return;
+  const d = Number(btn.dataset.day);
+  if (selectedFamilyDays.includes(d)) {
+    selectedFamilyDays = selectedFamilyDays.filter(x => x !== d);
+    btn.classList.remove('selected');
+  } else {
+    selectedFamilyDays.push(d);
+    btn.classList.add('selected');
+  }
+});
+
+function addFamilyMember() {
+  const name = document.getElementById('family-name').value.trim();
+  const time = document.getElementById('family-time').value || '09:00';
+  if (!name) { toast('Enter a name 🍓'); return; }
+  if (selectedFamilyDays.length === 0) { toast('Pick at least one day'); return; }
+  const family = getFamily();
+  family.push({ id: Date.now(), name, days: [...selectedFamilyDays], time, active: true });
+  store(K.family, family);
+  document.getElementById('family-name').value = '';
+  selectedFamilyDays = [];
+  document.querySelectorAll('#family-days-picker .day-btn').forEach(b => b.classList.remove('selected'));
+  renderFamily();
+  syncToServer();
+  toast('Added 🏡 ' + name);
+}
+
+function deleteFamilyMember(id) {
+  store(K.family, getFamily().filter(m => m.id !== id));
+  renderFamily();
+  syncToServer();
+  toast('Removed');
+}
+
+function toggleFamily(id, val) {
+  const family = getFamily();
+  const m = family.find(x => x.id === id);
+  if (m) { m.active = val; store(K.family, family); }
+  syncToServer();
+}
+
+function renderFamily() {
+  const family = getFamily();
+  const list = document.getElementById('family-list');
+  if (family.length === 0) {
+    list.innerHTML = `
+      <div class="empty-state">
+        <span class="empty-icon">🏡</span>
+        <h3>Jomana, add your family members!</h3>
+        <p>Each person gets their own reminder schedule 💗</p>
+      </div>`;
+    return;
+  }
+
+  const DAY_NAMES = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+
+  list.innerHTML = family.map(m => `
+    <div class="card${m.active === false ? ' paused' : ''}">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px">
+        <div>
+          <div class="card-name">${esc(m.name)}</div>
+          <div class="card-sub">
+            <span class="schedule-tag">🕐 ${m.time}</span>
+            ${m.days.slice().sort((a,b)=>a-b).map(d => `<span class="schedule-tag">${DAY_NAMES[d]}</span>`).join('')}
+          </div>
+        </div>
+        <button class="btn btn-danger" style="margin-top:2px;flex-shrink:0" onclick="deleteFamilyMember(${m.id})">Remove</button>
+      </div>
+      <div class="card-toggle-row">
+        <span class="card-toggle-label">${m.active === false ? 'Paused' : 'Active'}</span>
+        <label class="toggle">
+          <input type="checkbox" ${m.active !== false ? 'checked' : ''} onchange="toggleFamily(${m.id}, this.checked)">
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+    </div>
+  `).join('');
+}
+
+// ─── SETTINGS ─────────────────────────────────────────────────────────────────
+function renderSettings() {
+  const s = getSettings();
+  document.getElementById('toggle-master').checked = !!s.masterOn;
+  document.getElementById('toggle-quiet').checked  = !!s.quietHours;
+  document.getElementById('quiet-start').value     = s.quietStart || '23:00';
+  document.getElementById('quiet-end').value       = s.quietEnd   || '08:00';
+  document.querySelectorAll('.color-dot').forEach(d => {
+    d.classList.toggle('active', d.dataset.color === s.accent);
+  });
+}
+
+function saveSetting(key, val) {
+  const s = getSettings();
+  s[key] = val;
+  store(K.settings, s);
+  if (key === 'masterOn' && val) {
+    if (typeof Notification !== 'undefined' && Notification.permission !== 'granted') {
+      requestNotifPermission();
+      return; // requestNotifPermission calls subscribeToPush + syncToServer
+    }
+    subscribeToPush().then(() => syncToServer());
+    return;
+  }
+  syncToServer();
+}
+
+function changeAccent(color, el) {
+  document.documentElement.style.setProperty('--red', color);
+  document.documentElement.style.setProperty('--accent', color);
+  const s = getSettings(); s.accent = color; store(K.settings, s);
+  document.querySelectorAll('.color-dot').forEach(d => d.classList.remove('active'));
+  el.classList.add('active');
+  toast('🎨 Color updated!');
+}
+
+function clearAllData() {
+  if (!confirm('Are you sure? All data will be deleted!')) return;
+  Object.values(K).forEach(k => localStorage.removeItem(k));
+  toast('🗑️ All data cleared');
+  renderFriends();
+  renderFamily();
+  renderSettings();
+}
+
+// ─── HELPERS ──────────────────────────────────────────────────────────────────
+function esc(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ─── INIT ─────────────────────────────────────────────────────────────────────
+(function init() {
+  const s = getSettings();
+  if (s.accent) {
+    document.documentElement.style.setProperty('--red', s.accent);
+    document.documentElement.style.setProperty('--accent', s.accent);
+  }
+  renderFriends();
+  // Client-side fallback scheduler (server is primary)
+  setInterval(checkSchedule, 60000);
+  // Sync to server on load — re-subscribe if permission already granted
+  if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
+    subscribeToPush().then(() => syncToServer());
+  }
+})();
+</script>
+</body>
+</html>
