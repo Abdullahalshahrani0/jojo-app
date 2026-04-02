@@ -501,7 +501,7 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
     <div class="toggle-row">
       <div>
         <div class="toggle-label">Quiet hours</div>
-        <div class="toggle-sub">No notifications from 11pm to 8am</div>
+        <div class="toggle-sub">Block notifications between set hours</div>
       </div>
       <label class="toggle">
         <input type="checkbox" id="toggle-quiet" onchange="saveSetting('quietHours', this.checked)">
@@ -627,7 +627,7 @@ function getFriends()  { return load(K.friends)  || []; }
 function getFamily()   { return load(K.family)   || []; }
 function getSettings() {
   return Object.assign({
-    masterOn: false, quietHours: true,
+    masterOn: false, quietHours: false,
     quietStart: '23:00', quietEnd: '08:00',
     accent: '#E8424A',
     friendDay: 5, friendTime: '09:00',

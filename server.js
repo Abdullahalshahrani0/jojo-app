@@ -79,12 +79,15 @@ function shuffle(arr) {
 
 function isQuiet(settings) {
   if (!settings || !settings.quietHours) return false;
+  // Server runs on UTC — convert to Saudi Arabia time (UTC+3)
   const now   = new Date();
-  const cur   = now.getHours() * 60 + now.getMinutes();
+  const saudiMinutes = (now.getUTCHours() * 60 + now.getUTCMinutes() + 180) % 1440;
   const [sh, sm] = (settings.quietStart || '23:00').split(':').map(Number);
   const [eh, em] = (settings.quietEnd   || '08:00').split(':').map(Number);
   const start = sh * 60 + sm, end = eh * 60 + em;
-  return start > end ? (cur >= start || cur < end) : (cur >= start && cur < end);
+  return start > end
+    ? (saudiMinutes >= start || saudiMinutes < end)
+    : (saudiMinutes >= start && saudiMinutes < end);
 }
 
 // ── Push helper ───────────────────────────────────────────────────────────────
@@ -125,9 +128,15 @@ function advancePick(data) {
 
 // ── Scheduler ─────────────────────────────────────────────────────────────────
 async function runScheduler() {
-  const now   = new Date();
-  const hhmm  = String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0');
-  console.log(`⏰ Cron tick — ${now.toISOString()} (local hhmm: ${hhmm})`);
+  const now          = new Date();
+  // All schedule comparisons use Saudi Arabia time (UTC+3)
+  const saudiMs      = now.getTime() + 3 * 60 * 60 * 1000;
+  const saudi        = new Date(saudiMs);
+  const hhmm         = String(saudi.getUTCHours()).padStart(2,'0') + ':' + String(saudi.getUTCMinutes()).padStart(2,'0');
+  const dayOfWeek    = saudi.getUTCDay();
+  const today        = `${saudi.getUTCFullYear()}-${String(saudi.getUTCMonth()+1).padStart(2,'0')}-${String(saudi.getUTCDate()).padStart(2,'0')}`;
+  const week         = isoWeek(saudi);
+  console.log(`⏰ Cron tick — UTC:${now.toISOString()} | Saudi:${hhmm} day:${dayOfWeek}`);
 
   const data = loadData();
   const s    = data.settings || {};
@@ -144,10 +153,6 @@ async function runScheduler() {
     console.log('⏭️  Skip: quiet hours active');
     return;
   }
-
-  const dayOfWeek = now.getDay();
-  const today     = todayStr(now);
-  const week      = isoWeek(now);
   let changed     = false;
 
   console.log(`📋 State — day:${dayOfWeek}, time:${hhmm}, week:${week}, friends:${(data.friends||[]).length}, family:${(data.family||[]).length}`);
