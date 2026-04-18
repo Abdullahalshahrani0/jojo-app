@@ -64,10 +64,6 @@ function isoWeek(date) {
   return d.getUTCFullYear() * 100 + Math.ceil((((d - y) / 86400000) + 1) / 7);
 }
 
-function todayStr(d) {
-  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-}
-
 function shuffle(arr) {
   const a = [...arr];
   for (let i = a.length - 1; i > 0; i--) {
@@ -159,12 +155,27 @@ async function runScheduler() {
 
   if (!data.sentToday) data.sentToday = { familyIds: {}, friendWeek: null };
 
+  // Clean up family entries that are not from today so they never block future notifications
+  if (data.sentToday.familyIds) {
+    let cleaned = 0;
+    for (const id of Object.keys(data.sentToday.familyIds)) {
+      if (data.sentToday.familyIds[id] !== today) {
+        delete data.sentToday.familyIds[id];
+        cleaned++;
+      }
+    }
+    if (cleaned > 0) console.log(`🧹 Cleaned ${cleaned} stale sentToday entries`);
+  }
+
   // ── Friends: one push per week ──
   const friendDay  = Number(s.friendDay ?? 5);
   const friendTime = s.friendTime || '09:00';
-  console.log(`👯 Friend schedule — day:${friendDay}, time:${friendTime} | current day:${dayOfWeek}, current time:${hhmm} | sentThisWeek:${data.sentToday.friendWeek === week}`);
+  const friendDayMatch  = dayOfWeek === friendDay;
+  const friendTimeMatch = hhmm === friendTime;
+  const friendNotSent   = data.sentToday.friendWeek !== week;
+  console.log(`👯 Friend — need day:${friendDay} time:${friendTime} | got day:${dayOfWeek} time:${hhmm} | dayMatch:${friendDayMatch} timeMatch:${friendTimeMatch} notSentYet:${friendNotSent}`);
 
-  if (dayOfWeek === friendDay && hhmm === friendTime && data.sentToday.friendWeek !== week) {
+  if (friendDayMatch && friendTimeMatch && friendNotSent) {
     console.log('👯 Friend schedule matched — picking friend...');
     const friend = advancePick(data);
     if (friend) {
@@ -233,16 +244,17 @@ app.post('/subscribe', (req, res) => {
 });
 
 app.post('/schedule', (req, res) => {
-  const { settings, friends, family, friendQueue, currentPick, sentToday } = req.body;
+  // sentToday is deliberately NOT accepted from the client — the server manages
+  // its own notification-sent tracking so the client can never accidentally reset it.
+  const { settings, friends, family, friendQueue, currentPick } = req.body;
   const data = loadData();
   if (settings    !== undefined) data.settings    = settings;
   if (friends     !== undefined) data.friends     = friends;
   if (family      !== undefined) data.family      = family;
   if (friendQueue !== undefined) data.friendQueue = friendQueue;
   if (currentPick !== undefined) data.currentPick = currentPick;
-  if (sentToday   !== undefined) data.sentToday   = sentToday;
   saveData(data);
-  console.log(`✅ Schedule synced — masterOn:${!!(data.settings&&data.settings.masterOn)}, friends:${(data.friends||[]).length}, family:${(data.family||[]).length}`);
+  console.log(`✅ Schedule synced — masterOn:${!!(data.settings&&data.settings.masterOn)}, friends:${(data.friends||[]).length}, family:${(data.family||[]).length}, friendDay:${data.settings&&data.settings.friendDay}, friendTime:${data.settings&&data.settings.friendTime}`);
   res.json({ ok: true });
 });
 

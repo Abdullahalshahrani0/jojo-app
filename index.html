@@ -552,6 +552,61 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
 // ─── SERVICE WORKER + PUSH ────────────────────────────────────────────────────
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('/sw.js').catch(e => console.warn('SW:', e));
+  // Listen for PLAY_SOUND messages from the service worker
+  navigator.serviceWorker.addEventListener('message', e => {
+    if (e.data && e.data.type === 'PLAY_SOUND') playCuteSound();
+  });
+}
+
+// If opened via a notification click (?notify=1), play sound on load
+if (location.search.includes('notify=1')) {
+  window.addEventListener('load', () => setTimeout(playCuteSound, 400));
+  history.replaceState({}, '', '/');
+}
+
+// ─── CUTE NOTIFICATION SOUND ─────────────────────────────────────────────────
+// Generates a short ascending strawberry-pop chime using Web Audio API.
+// No external files — everything computed in-browser.
+function playCuteSound() {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+
+    // Three ascending notes: E5 → G#5 → B5  (E major arpeggio)
+    const notes = [
+      { freq: 659,  start: 0.00, dur: 0.30 },
+      { freq: 831,  start: 0.13, dur: 0.28 },
+      { freq: 988,  start: 0.26, dur: 0.35 },
+    ];
+
+    notes.forEach(({ freq, start, dur }) => {
+      const osc  = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.type = 'sine';
+      osc.frequency.value = freq;
+      const t = ctx.currentTime + start;
+      gain.gain.setValueAtTime(0.001, t);
+      gain.gain.linearRampToValueAtTime(0.22, t + 0.025);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + dur);
+      osc.start(t);
+      osc.stop(t + dur + 0.05);
+    });
+
+    // Tiny sparkle at the top: E6 (one octave above last note)
+    const sparkle = ctx.createOscillator();
+    const sg      = ctx.createGain();
+    sparkle.connect(sg);
+    sg.connect(ctx.destination);
+    sparkle.type = 'sine';
+    sparkle.frequency.value = 1319;
+    const st = ctx.currentTime + 0.52;
+    sg.gain.setValueAtTime(0.001, st);
+    sg.gain.linearRampToValueAtTime(0.12, st + 0.02);
+    sg.gain.exponentialRampToValueAtTime(0.001, st + 0.18);
+    sparkle.start(st);
+    sparkle.stop(st + 0.22);
+  } catch (e) { /* AudioContext not available — silent fail */ }
 }
 
 function urlBase64ToUint8Array(b64) {
@@ -594,7 +649,9 @@ async function syncToServer() {
         family:      getFamily(),
         friendQueue: load(K.friendQueue) || [],
         currentPick: load(K.currentPick),
-        sentToday:   load(K.sentToday) || { familyIds: {}, friendWeek: null },
+        // sentToday is intentionally NOT sent — the server owns notification
+        // tracking state. Sending it from the client would reset the server's
+        // record of what was already sent this week/day.
       }),
     });
   } catch { /* offline — localStorage keeps working */ }
