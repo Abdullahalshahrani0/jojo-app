@@ -73,6 +73,17 @@ function shuffle(arr) {
   return a;
 }
 
+// Returns true if currentHHMM falls within [scheduledHHMM, scheduledHHMM + windowMins)
+// Handles midnight crossings correctly.
+function isWithinWindow(scheduledHHMM, currentHHMM, windowMins = 3) {
+  const [sh, sm] = scheduledHHMM.split(':').map(Number);
+  const [ch, cm] = currentHHMM.split(':').map(Number);
+  const scheduled = sh * 60 + sm;
+  const current   = ch * 60 + cm;
+  const diff = (current - scheduled + 1440) % 1440; // minutes since scheduled time
+  return diff < windowMins;
+}
+
 function isQuiet(settings) {
   if (!settings || !settings.quietHours) return false;
   // Server runs on UTC — convert to Saudi Arabia time (UTC+3)
@@ -155,48 +166,59 @@ async function runScheduler() {
 
   if (!data.sentToday) data.sentToday = { familyIds: {}, friendWeek: null };
 
-  // Clean up family entries that are not from today so they never block future notifications
-  if (data.sentToday.familyIds) {
+  // ── Clean up stale family entries from previous days ──────────────────────
+  {
     let cleaned = 0;
-    for (const id of Object.keys(data.sentToday.familyIds)) {
-      if (data.sentToday.familyIds[id] !== today) {
-        delete data.sentToday.familyIds[id];
-        cleaned++;
-      }
+    for (const key of Object.keys(data.sentToday.familyIds || {})) {
+      // key format: "id:today" — remove if date part doesn't match today
+      if (!key.endsWith(':' + today)) { delete data.sentToday.familyIds[key]; cleaned++; }
     }
-    if (cleaned > 0) console.log(`🧹 Cleaned ${cleaned} stale sentToday entries`);
+    if (cleaned > 0) console.log(`🧹 Removed ${cleaned} stale family sentToday entries`);
   }
 
-  // ── Friends: one push per week ──
-  const friendDay  = Number(s.friendDay ?? 5);
-  const friendTime = s.friendTime || '09:00';
-  const friendDayMatch  = dayOfWeek === friendDay;
-  const friendTimeMatch = hhmm === friendTime;
-  const friendNotSent   = data.sentToday.friendWeek !== week;
-  console.log(`👯 Friend — need day:${friendDay} time:${friendTime} | got day:${dayOfWeek} time:${hhmm} | dayMatch:${friendDayMatch} timeMatch:${friendTimeMatch} notSentYet:${friendNotSent}`);
+  // ── Friends: one push per week, 3-minute window ───────────────────────────
+  const friendDay     = Number(s.friendDay ?? 5);
+  const friendTime    = s.friendTime || '09:00';
+  const friendDayOk   = dayOfWeek === friendDay;
+  const friendTimeOk  = isWithinWindow(friendTime, hhmm);
+  const friendNotSent = data.sentToday.friendWeek !== week;
+  console.log(`👯 Friend check — scheduled: day=${friendDay} time=${friendTime} | now: day=${dayOfWeek} time=${hhmm} | dayOk=${friendDayOk} timeInWindow=${friendTimeOk} notSentThisWeek=${friendNotSent}`);
 
-  if (friendDayMatch && friendTimeMatch && friendNotSent) {
-    console.log('👯 Friend schedule matched — picking friend...');
+  if (friendDayOk && friendTimeOk && friendNotSent) {
+    console.log('👯 ✅ Friend window matched — picking this week\'s friend...');
     const friend = advancePick(data);
     if (friend) {
       await push(data.subscription, 'JOJO 🍓', `Hey Jomana! Reach out to ${friend.name} this week 🍓`);
-      data.sentToday.friendWeek = week;
+      data.sentToday.friendWeek = week; // mark sent for this entire ISO week
       changed = true;
     } else {
-      console.log('⏭️  No active friends to pick');
+      console.log('👯 ⏭️  No active friends in list');
     }
   }
 
-  // ── Family: per-member schedule ──
-  for (const m of (data.family || [])) {
-    if (m.active === false) { console.log(`⏭️  ${m.name}: paused`); continue; }
-    if (!m.days.includes(dayOfWeek)) continue;
-    if (m.time !== hhmm) continue;
-    if (data.sentToday.familyIds[m.id] === today) { console.log(`⏭️  ${m.name}: already sent today`); continue; }
+  // ── Family: per-member, independent schedule, 3-minute window ────────────
+  const familyList = data.family || [];
+  if (familyList.length === 0) {
+    console.log('🏡 No family members saved');
+  }
 
-    console.log(`🏡 Family match: ${m.name}`);
+  for (const m of familyList) {
+    const sentKey  = `${m.id}:${today}`; // unique per member per day
+    const dayOk    = m.days.includes(dayOfWeek);
+    const timeOk   = isWithinWindow(m.time, hhmm);
+    const notSent  = !data.sentToday.familyIds[sentKey];
+    const isActive = m.active !== false;
+
+    console.log(`🏡 ${m.name} — active=${isActive} scheduledDays=${JSON.stringify(m.days)} time=${m.time} | dayOk=${dayOk} timeInWindow=${timeOk} notSentToday=${notSent}`);
+
+    if (!isActive)          { console.log(`   ↳ skip: paused`);              continue; }
+    if (!dayOk)             { console.log(`   ↳ skip: not scheduled today`); continue; }
+    if (!timeOk)            { console.log(`   ↳ skip: outside time window`); continue; }
+    if (!notSent)           { console.log(`   ↳ skip: already sent today`);  continue; }
+
+    console.log(`   ↳ ✅ sending notification for ${m.name}`);
     await push(data.subscription, 'JOJO 🍓', `Hey Jomana! Time to call ${m.name} today 🍓`);
-    data.sentToday.familyIds[m.id] = today;
+    data.sentToday.familyIds[sentKey] = today;
     changed = true;
   }
 
@@ -204,7 +226,7 @@ async function runScheduler() {
     saveData(data);
     console.log('💾 data.json updated');
   } else {
-    console.log('ℹ️  No notifications sent this tick');
+    console.log('ℹ️  Tick complete — no notifications sent');
   }
 }
 
